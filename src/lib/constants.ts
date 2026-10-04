@@ -58,6 +58,19 @@ export function formatKes(amount: number) {
   return `KSh ${amount.toLocaleString("en-KE")}`;
 }
 
+/** Approximate activation fee in major currencies (KSh 90 ≈ $0.70 USD at ~130 KES/USD) */
+export const ACTIVATION_FEE_EQUIV = [
+  { currency: "USD", symbol: "$",  amount: "0.70" },
+  { currency: "EUR", symbol: "€",  amount: "0.64" },
+  { currency: "GBP", symbol: "£",  amount: "0.55" },
+  { currency: "AUD", symbol: "A$", amount: "1.05" },
+  { currency: "CAD", symbol: "C$", amount: "0.95" },
+  { currency: "INR", symbol: "₹",  amount: "58"   },
+  { currency: "NGN", symbol: "₦",  amount: "1,050" },
+  { currency: "ZAR", symbol: "R",  amount: "12.80" },
+  { currency: "AED", symbol: "د.إ",amount: "2.55" },
+];
+
 export function timeAgo(iso: string | Date | null | undefined) {
   if (!iso) return "";
   const date = typeof iso === "string" ? new Date(iso) : iso;
