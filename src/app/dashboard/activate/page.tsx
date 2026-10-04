@@ -110,6 +110,34 @@ export default function ActivatePage() {
       )}
 
       {!isActive && (
+        <Card className="border-emerald-300/60 bg-gradient-to-r from-emerald-500 to-teal-500 p-6 text-white dark:border-emerald-500/30">
+          <p className="text-xs font-bold uppercase tracking-widest opacity-80">🔓 One-time activation — unlock everything</p>
+          <p className="mt-2 text-2xl font-extrabold">Send KSh 90 via M-Pesa right now</p>
+          <div className="mt-4 flex flex-wrap gap-4">
+            <div className="rounded-2xl bg-white/20 px-5 py-3 text-center">
+              <p className="text-[10px] font-bold uppercase tracking-widest opacity-75">Paybill</p>
+              <div className="mt-1 flex items-center gap-2">
+                <span className="font-mono text-2xl font-extrabold">{SITE.paybill}</span>
+                <CopyButton value={SITE.paybill} />
+              </div>
+            </div>
+            <div className="rounded-2xl bg-white/20 px-5 py-3 text-center">
+              <p className="text-[10px] font-bold uppercase tracking-widest opacity-75">Account No.</p>
+              <div className="mt-1 flex items-center gap-2">
+                <span className="font-mono text-2xl font-extrabold">{SITE.paybillAccount}</span>
+                <CopyButton value={SITE.paybillAccount} />
+              </div>
+            </div>
+            <div className="rounded-2xl bg-white/20 px-5 py-3 text-center">
+              <p className="text-[10px] font-bold uppercase tracking-widest opacity-75">Amount</p>
+              <p className="mt-1 font-mono text-2xl font-extrabold">KSh 90</p>
+            </div>
+          </div>
+          <p className="mt-4 text-xs opacity-75">After paying, scroll down and submit your M-Pesa confirmation code. An admin activates your account within a few hours.</p>
+        </Card>
+      )}
+
+      {!isActive && (
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Instructions */}
           <Card className="p-6">
