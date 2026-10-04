@@ -7,6 +7,7 @@ export const SITE = {
   activationFeeKes: 90,
   paybill: "542542",
   paybillAccount: "016094",
+  paybillName: "Global Connect",
 };
 
 export const COUNTRIES = [

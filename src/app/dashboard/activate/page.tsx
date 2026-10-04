@@ -113,6 +113,7 @@ export default function ActivatePage() {
         <Card className="border-emerald-300/60 bg-gradient-to-r from-emerald-500 to-teal-500 p-6 text-white dark:border-emerald-500/30">
           <p className="text-xs font-bold uppercase tracking-widest opacity-80">🔓 One-time activation — unlock everything</p>
           <p className="mt-2 text-2xl font-extrabold">Send KSh 90 via M-Pesa right now</p>
+          <p className="mt-1 text-sm opacity-90">Business: <span className="font-extrabold">{SITE.paybillName}</span> — you will see this name on your M-Pesa screen to confirm you are paying the right account.</p>
           <div className="mt-4 flex flex-wrap gap-4">
             <div className="rounded-2xl bg-white/20 px-5 py-3 text-center">
               <p className="text-[10px] font-bold uppercase tracking-widest opacity-75">Paybill</p>
