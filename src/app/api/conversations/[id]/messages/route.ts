@@ -5,6 +5,8 @@ import { conversationParticipants, conversations, messages, users } from "@/db/s
 import { ApiError, handle, ok, readJson, rateLimit, vImage, vStr } from "@/lib/api";
 import { requireActive, requireUser } from "@/lib/auth";
 import { activeOtherParticipants, isParticipant, publicUser } from "@/lib/db-helpers";
+import { AI_MEMBER_EMAILS } from "@/lib/ai-personas";
+import { triggerAiReply } from "@/lib/ai-reply";
 
 type Ctx = { params: Promise<Record<string, string>> };
 
@@ -92,6 +94,21 @@ export const POST = handle(async (req, ctx) => {
         body: imageUrl ? "Sent you a photo" : content.slice(0, 120),
         link,
       });
+    }
+  }
+
+  // If the other participant is an AI persona member, trigger an auto-reply (fire and forget).
+  if (otherPart) {
+    const [otherUser] = await db.select().from(users).where(eq(users.id, otherPart.userId)).limit(1);
+    if (otherUser && AI_MEMBER_EMAILS.has(otherUser.email)) {
+      triggerAiReply({
+        conversationId,
+        aiUserId: otherUser.id,
+        aiUserEmail: otherUser.email,
+        aiUserName: otherUser.name,
+        realUserId: me.id,
+        realUserName: me.name,
+      }).catch(() => {});
     }
   }
 
