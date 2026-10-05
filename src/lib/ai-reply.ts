@@ -52,19 +52,17 @@ export async function triggerAiReply({
           "X-Title": "Global Connect",
         },
         body: JSON.stringify({
-          model: "nvidia/nemotron-3.5-lightning:free",
-          messages: [
-            { role: "system", content: personaPrompt },
-            ...chatHistory.slice(-8),
-          ],
-          max_tokens: 120,
+          model: "openrouter/free",
+          messages: [{ role: "system", content: personaPrompt }, ...chatHistory.slice(-8)],
+          max_tokens: 400,
           temperature: 0.85,
         }),
       });
       if (res.ok) {
         const data = await res.json();
-        const text = data.choices?.[0]?.message?.content?.trim();
-        if (text) reply = text;
+        const msg = data.choices?.[0]?.message;
+        const text = msg?.content?.trim() || msg?.reasoning?.split("\n").filter((l: string) => l.trim() && l.length > 20).pop()?.trim();
+        if (text && text.length > 3) reply = text;
       }
     } catch {}
   } else {

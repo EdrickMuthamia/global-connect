@@ -42,16 +42,18 @@ export async function POST(req: NextRequest) {
           "X-Title": "Global Connect",
         },
         body: JSON.stringify({
-          model: "nvidia/nemotron-3.5-lightning:free",
+          model: "openrouter/free",
           messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
-          max_tokens: 300,
+          max_tokens: 800,
           temperature: 0.7,
         }),
       });
       if (res.ok) {
         const data = await res.json();
-        const reply = data.choices?.[0]?.message?.content?.trim();
-        if (reply) return NextResponse.json({ reply });
+        const msg = data.choices?.[0]?.message;
+        // Some free models put the actual reply in reasoning when content is short
+        const reply = msg?.content?.trim() || msg?.reasoning?.split("\n").filter((l: string) => l.trim() && !l.startsWith("1.") && !l.startsWith("-") && l.length > 20).pop()?.trim();
+        if (reply && reply.length > 3) return NextResponse.json({ reply });
       }
     } catch {}
   }
