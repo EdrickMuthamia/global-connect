@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { BadgeCheck, MapPin, RotateCcw, Search, SlidersHorizontal, Star, Users } from "lucide-react";
 import { api } from "@/lib/client";
 import { Avatar, Badge, Card, EmptyState, Input, PageLoader, Select, Skeleton } from "@/components/ui";
-import { COUNTRIES, INTERESTS, LANGUAGES, isOnline } from "@/lib/constants";
+import { COUNTRIES, INTERESTS, LANGUAGES, formatKes, isOnline } from "@/lib/constants";
 
 interface MemberRow {
   id: number;
@@ -21,6 +21,7 @@ interface MemberRow {
   lastActiveAt?: string | null;
   rating: number | null;
   ratingCount: number;
+  sessionRateKes?: number | null;
 }
 
 export default function MembersPage() {
@@ -158,6 +159,9 @@ export default function MembersPage() {
                         )}
                         {online && <span className="ml-1 font-bold text-emerald-500">· Online</span>}
                       </div>
+                      <p className="mt-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                        {m.sessionRateKes ? `${formatKes(m.sessionRateKes)} / session` : "Free to connect"}
+                      </p>
                     </div>
                   </div>
                   {m.bio && <p className="mt-3 line-clamp-2 text-[13px] leading-relaxed text-slate-500 dark:text-slate-400">{m.bio}</p>}

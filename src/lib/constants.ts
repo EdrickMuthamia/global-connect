@@ -6,7 +6,7 @@ export const SITE = {
   email: "support@globalconnect.app",
   activationFeeKes: 90,
   paybill: "542542",
-  paybillAccount: "016094",
+  paybillAccount: "01609490286150",
   paybillName: "Global Connect",
 };
 

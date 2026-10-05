@@ -26,6 +26,7 @@ import {
 import { api } from "@/lib/client";
 import { cn } from "@/components/ui";
 import { Avatar, Logo, ThemeToggle, Button } from "@/components/ui";
+import { AiAssistant } from "@/components/ai-assistant";
 
 interface MeUser {
   id: number;
@@ -294,6 +295,8 @@ export function Shell({ children, variant = "member" }: { children: ReactNode; v
       <main className="px-4 pb-16 pt-6 sm:px-6 lg:pl-[284px] lg:pr-8">
         <div className="mx-auto w-full max-w-6xl">{children}</div>
       </main>
+
+      <AiAssistant />
     </div>
   );
 }

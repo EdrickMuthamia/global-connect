@@ -25,7 +25,7 @@ import { api, ApiClientError } from "@/lib/client";
 import { useMe } from "@/components/shell";
 import { Avatar, Badge, Button, Card, EmptyState, Field, Input, Modal, PageLoader, Select, Stars, Textarea } from "@/components/ui";
 import { useToast } from "@/components/providers";
-import { formatDateTime, isOnline, timeAgo } from "@/lib/constants";
+import { formatKes, formatDateTime, isOnline, timeAgo } from "@/lib/constants";
 
 interface ProfileData {
   user: {
@@ -37,6 +37,7 @@ interface ProfileData {
     languages?: string[];
     interests?: string[];
     availability?: string | null;
+    sessionRateKes?: number | null;
     isVerified: boolean;
     lastActiveAt?: string | null;
     createdAt: string;
@@ -207,6 +208,18 @@ export function MemberProfile({ userId }: { userId: number }) {
           </div>
 
           {user.bio && <p className="mt-5 max-w-2xl text-[15px] leading-relaxed text-slate-600 dark:text-slate-300">{user.bio}</p>}
+
+          {/* Session rate */}
+          <div className="mt-4 inline-flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2 dark:border-emerald-500/30 dark:bg-emerald-500/10">
+            <span className="text-sm font-bold text-emerald-700 dark:text-emerald-300">
+              {user.sessionRateKes ? `${formatKes(user.sessionRateKes)} / session` : "Free to connect"}
+            </span>
+            {user.sessionRateKes && (
+              <span className="text-xs text-emerald-600/70 dark:text-emerald-400/60">
+                ≈ ${(user.sessionRateKes / 130).toFixed(2)} USD
+              </span>
+            )}
+          </div>
 
           <div className="mt-5 flex flex-wrap gap-2">
             {(user.languages ?? []).map((l) => <Badge key={l} tone="blue"><Languages className="h-3 w-3" /> {l}</Badge>)}

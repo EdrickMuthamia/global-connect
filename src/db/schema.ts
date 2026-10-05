@@ -38,6 +38,7 @@ export const users = pgTable(
     languages: jsonb("languages").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
     interests: jsonb("interests").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
     availability: text("availability"),
+    sessionRateKes: integer("session_rate_kes"), // per-session fee in KES (null = free)
     lastActiveAt: timestamp("last_active_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

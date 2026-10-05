@@ -22,6 +22,7 @@ export function publicUser(u: User, opts: { includeEmail?: boolean } = {}) {
     languages: u.languages,
     interests: u.interests,
     availability: u.availability,
+    sessionRateKes: u.sessionRateKes,
     isVerified: u.isVerified,
     lastActiveAt: u.lastActiveAt,
     createdAt: u.createdAt,
