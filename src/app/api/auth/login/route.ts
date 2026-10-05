@@ -11,7 +11,13 @@ export const POST = handle(async (req) => {
   const email = vEmail(body.email);
   const password = String(body.password ?? "");
 
-  const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  let user;
+  try {
+    [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  } catch {
+    throw new ApiError(503, "Database is not reachable. Please check your DATABASE_URL environment variable on Vercel.");
+  }
+
   if (!user || !(await verifyPassword(password, user.passwordHash))) {
     throw new ApiError(401, "Incorrect email or password.");
   }

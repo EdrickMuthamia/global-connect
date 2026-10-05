@@ -4,7 +4,7 @@ import { Pool } from "pg";
 const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
-  throw new Error("DATABASE_URL is required");
+  console.error("[db] DATABASE_URL is not set — all database operations will fail.");
 }
 
 const globalForDb = globalThis as typeof globalThis & {
@@ -14,7 +14,7 @@ const globalForDb = globalThis as typeof globalThis & {
 export const pool =
   globalForDb.__arenaNextJsPostgresqlPool ??
   new Pool({
-    connectionString: databaseUrl,
+    connectionString: databaseUrl ?? "postgresql://localhost/placeholder",
   });
 
 if (process.env.NODE_ENV !== "production") {
