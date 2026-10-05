@@ -52,16 +52,15 @@ export async function triggerAiReply({
           "X-Title": "Global Connect",
         },
         body: JSON.stringify({
-          model: "openrouter/free",
+          model: "openrouter/auto",
           messages: [{ role: "system", content: personaPrompt }, ...chatHistory.slice(-8)],
-          max_tokens: 400,
+          max_tokens: 200,
           temperature: 0.85,
         }),
       });
       if (res.ok) {
         const data = await res.json();
-        const msg = data.choices?.[0]?.message;
-        const text = msg?.content?.trim() || msg?.reasoning?.split("\n").filter((l: string) => l.trim() && l.length > 20).pop()?.trim();
+        const text = data.choices?.[0]?.message?.content?.trim();
         if (text && text.length > 3) reply = text;
       }
     } catch {}
