@@ -1,4 +1,4 @@
-/** Edge proxy: protects /dashboard and /admin, enforces role for /admin. */
+/** Route protection: guards /dashboard and /admin, enforces admin role. */
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
@@ -7,7 +7,7 @@ const secret = new TextEncoder().encode(
   process.env.AUTH_SECRET || "global-connect-dev-secret-change-in-production",
 );
 
-export async function proxy(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const token = req.cookies.get("gc_token")?.value;
   const url = req.nextUrl.clone();
 
