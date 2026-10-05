@@ -1,4 +1,4 @@
-/** Edge middleware: protects /dashboard and /admin, enforces role for /admin. */
+/** Edge proxy: protects /dashboard and /admin, enforces role for /admin. */
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
@@ -7,7 +7,7 @@ const secret = new TextEncoder().encode(
   process.env.AUTH_SECRET || "global-connect-dev-secret-change-in-production",
 );
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const token = req.cookies.get("gc_token")?.value;
   const url = req.nextUrl.clone();
 
@@ -27,7 +27,6 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
     if (url.pathname.startsWith("/dashboard") && payload.role === "admin" && url.pathname === "/dashboard") {
-      // Admins land on the admin console by default.
       return NextResponse.redirect(new URL("/admin", req.url));
     }
     return NextResponse.next();
