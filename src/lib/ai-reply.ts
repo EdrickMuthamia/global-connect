@@ -1,6 +1,6 @@
-import { eq, asc } from "drizzle-orm";
+import { eq, asc, and } from "drizzle-orm";
 import { db } from "@/db";
-import { conversations, conversationParticipants, messages, notifications, users } from "@/db/schema";
+import { conversations, conversationParticipants, messages, notifications } from "@/db/schema";
 import { getPersonaPrompt } from "@/lib/ai-personas";
 
 /**
@@ -13,14 +13,12 @@ export async function triggerAiReply({
   aiUserEmail,
   aiUserName,
   realUserId,
-  realUserName,
 }: {
   conversationId: number;
   aiUserId: number;
   aiUserEmail: string;
   aiUserName: string;
   realUserId: number;
-  realUserName: string;
 }) {
   const personaPrompt = getPersonaPrompt(aiUserEmail);
   if (!personaPrompt) return;
@@ -110,7 +108,10 @@ export async function triggerAiReply({
     .update(conversationParticipants)
     .set({ lastReadAt: new Date() })
     .where(
-      eq(conversationParticipants.conversationId, conversationId),
+      and(
+        eq(conversationParticipants.conversationId, conversationId),
+        eq(conversationParticipants.userId, aiUserId),
+      ),
     );
 
   // Notify the real user

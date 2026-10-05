@@ -107,7 +107,6 @@ export const POST = handle(async (req, ctx) => {
         aiUserEmail: otherUser.email,
         aiUserName: otherUser.name,
         realUserId: me.id,
-        realUserName: me.name,
       }).catch(() => {});
     }
   }
