@@ -52,7 +52,7 @@ export function LoginForm({ next }: { next: string }) {
   const [apiOk, setApiOk] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // Quick connectivity check so users know immediately if the server is reachable.
+    // Only warn if the server itself is completely unreachable (network error).
     api("/api/health", { method: "GET" })
       .then(() => setApiOk(true))
       .catch(() => setApiOk(false));
@@ -70,7 +70,7 @@ export function LoginForm({ next }: { next: string }) {
       if (err instanceof ApiClientError) {
         setError(err.message);
       } else {
-        setError("Cannot reach the server. Please refresh the page and try again.");
+        setError("Cannot reach the server. Please check your connection and try again.");
         setApiOk(false);
       }
       setBusy(false);
@@ -81,8 +81,8 @@ export function LoginForm({ next }: { next: string }) {
     <div>
       <Heading title="Welcome back" subtitle="Sign in to continue your conversations." />
       {apiOk === false && (
-        <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-medium text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300">
-          ⚠️ The app cannot reach its server. If you are on an old preview link, please use the latest link shared above.
+        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-medium text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
+          ⚠️ Cannot reach the server. Please check your internet connection or try again shortly.
         </div>
       )}
       <form onSubmit={submit} className="space-y-4">
