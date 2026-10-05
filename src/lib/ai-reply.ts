@@ -36,9 +36,8 @@ export async function triggerAiReply({
     content: m.content ?? "",
   }));
 
-  // Simulate typing delay (2–5 seconds)
-  const delay = 2000 + Math.random() * 3000;
-  await new Promise((r) => setTimeout(r, delay));
+  // Short delay to simulate typing (safe for serverless — max 1.5s)
+  await new Promise((r) => setTimeout(r, 1000 + Math.random() * 500));
 
   let reply = "That is really interesting! Tell me more 😊";
 
@@ -53,7 +52,7 @@ export async function triggerAiReply({
           "X-Title": "Global Connect",
         },
         body: JSON.stringify({
-          model: "mistralai/mistral-7b-instruct:free",
+          model: "nvidia/nemotron-3.5-lightning:free",
           messages: [
             { role: "system", content: personaPrompt },
             ...chatHistory.slice(-8),

@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
           "X-Title": "Global Connect",
         },
         body: JSON.stringify({
-          model: "mistralai/mistral-7b-instruct:free",
+          model: "nvidia/nemotron-3.5-lightning:free",
           messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
           max_tokens: 300,
           temperature: 0.7,
