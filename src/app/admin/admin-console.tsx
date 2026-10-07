@@ -235,7 +235,7 @@ function UsersTab() {
         {isFetching && <span className="text-xs font-semibold text-slate-400">Refreshing…</span>}
       </div>
 
-      <div className="mt-4 overflow-x-auto">
+      <div className="mt-4 overflow-x-auto rounded-xl">
         {isLoading ? (
           <div className="space-y-3">{[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-16" />)}</div>
         ) : users.length === 0 ? (

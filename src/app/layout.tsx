@@ -15,6 +15,7 @@ export const metadata: Metadata = {
   description:
     "Global Connect is where people from around the world meet to learn English or Swahili, exchange cultures and build international friendships through text, voice and video conversations.",
   keywords: ["language exchange", "learn English", "learn Swahili", "video calls", "international friends"],
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
 };
 
 // Set the theme before first paint to avoid a flash of the wrong color scheme.
