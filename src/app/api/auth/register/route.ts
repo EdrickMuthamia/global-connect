@@ -29,7 +29,7 @@ export const POST = handle(async (req) => {
     expiresAt: new Date(Date.now() + 30 * 60_000),
   });
 
-  await setSessionCookie({ sub: user.id, role: user.role, name: user.name, email: user.email });
+  await setSessionCookie({ sub: user.id, role: user.role, name: user.name, email: user.email, status: user.status });
   await notify(user.id, {
     type: "system",
     title: "Karibu! Welcome to Global Connect",

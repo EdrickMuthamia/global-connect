@@ -24,7 +24,7 @@ export const POST = handle(async (req) => {
   if (user.status === "banned") throw new ApiError(403, "This account has been banned. Please contact support.");
   if (user.status === "suspended") throw new ApiError(403, "This account is suspended. Please contact support.");
 
-  await setSessionCookie({ sub: user.id, role: user.role, name: user.name, email: user.email });
+  await setSessionCookie({ sub: user.id, role: user.role, name: user.name, email: user.email, status: user.status });
   await db.update(users).set({ lastActiveAt: new Date() }).where(eq(users.id, user.id));
 
   return ok({ user: publicUser(user, { includeEmail: true }) });

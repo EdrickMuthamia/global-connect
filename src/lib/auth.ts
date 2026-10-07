@@ -23,6 +23,7 @@ export interface SessionPayload {
   role: string;
   name: string;
   email: string;
+  status: string;
 }
 
 export async function hashPassword(password: string) {
@@ -34,7 +35,7 @@ export async function verifyPassword(password: string, hash: string) {
 }
 
 export async function signSession(payload: SessionPayload) {
-  return new SignJWT({ role: payload.role, name: payload.name, email: payload.email })
+  return new SignJWT({ role: payload.role, name: payload.name, email: payload.email, status: payload.status })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(String(payload.sub))
     .setIssuedAt()
@@ -50,6 +51,7 @@ export async function verifySessionToken(token: string): Promise<SessionPayload 
       role: String(payload.role || "member"),
       name: String(payload.name || ""),
       email: String(payload.email || ""),
+      status: String(payload.status || "pending_activation"),
     };
   } catch {
     return null;

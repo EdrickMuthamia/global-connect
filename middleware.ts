@@ -1,4 +1,4 @@
-/** Route protection: guards /dashboard and /admin, enforces admin role. */
+/** Route protection: guards /dashboard and /admin, enforces admin role + activation. */
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
@@ -6,6 +6,14 @@ import { jwtVerify } from "jose";
 const secret = new TextEncoder().encode(
   process.env.AUTH_SECRET || "global-connect-dev-secret-change-in-production",
 );
+
+// Pages an unactivated member CAN visit
+const ALLOWED_INACTIVE = [
+  "/dashboard/activate",
+  "/dashboard/profile",
+  "/dashboard/settings",
+  "/dashboard/notifications",
+];
 
 export async function middleware(req: NextRequest) {
   const token = req.cookies.get("gc_token")?.value;
@@ -23,12 +31,27 @@ export async function middleware(req: NextRequest) {
 
   try {
     const { payload } = await jwtVerify(token, secret);
+
+    // Admin guard
     if (url.pathname.startsWith("/admin") && payload.role !== "admin") {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
-    if (url.pathname.startsWith("/dashboard") && payload.role === "admin" && url.pathname === "/dashboard") {
+
+    // Redirect admin away from /dashboard root
+    if (url.pathname === "/dashboard" && payload.role === "admin") {
       return NextResponse.redirect(new URL("/admin", req.url));
     }
+
+    // Activation gate — block inactive members from premium pages
+    if (
+      url.pathname.startsWith("/dashboard") &&
+      payload.role !== "admin" &&
+      payload.status !== "active" &&
+      !ALLOWED_INACTIVE.some((p) => url.pathname.startsWith(p))
+    ) {
+      return NextResponse.redirect(new URL("/dashboard/activate", req.url));
+    }
+
     return NextResponse.next();
   } catch {
     return toLogin();
