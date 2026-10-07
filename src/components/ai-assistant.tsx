@@ -27,7 +27,7 @@ export function AiAssistant() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Hi! I'm your Global Connect assistant 👋 Ask me anything about the platform — activation, calls, bookings, and more." },
+    { role: "assistant", content: "Hey there! 👋 I'm Amara, your Global Connect guide. Whether it's activation, calls, bookings or just figuring things out — I've got you. What's on your mind?" },
   ]);
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -85,8 +85,8 @@ export function AiAssistant() {
               <Bot className="h-5 w-5 text-white" />
             </div>
             <div>
-              <p className="text-sm font-extrabold text-white">Global Connect AI</p>
-              <p className="text-[10px] text-white/70">Always here to help</p>
+              <p className="text-sm font-extrabold text-white">Amara</p>
+              <p className="text-[10px] text-white/70">Global Connect · Always here 🌍</p>
             </div>
           </div>
 

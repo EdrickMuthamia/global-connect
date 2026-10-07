@@ -41,26 +41,28 @@ export async function triggerAiReply({
 
   let reply = "That is really interesting! Tell me more 😊";
 
-  if (process.env.OPENROUTER_API_KEY) {
+  const geminiKey = process.env.GEMINI_API_KEY;
+  if (geminiKey) {
     try {
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "HTTP-Referer": "https://globalconnect.app",
-          "X-Title": "Global Connect",
+      const contents = [
+        { role: "user", parts: [{ text: personaPrompt + "\n\nUnderstood. Stay in character." }] },
+        { role: "model", parts: [{ text: "Got it! I'm ready." }] },
+        ...chatHistory.slice(-8).map((m) => ({
+          role: m.role === "assistant" ? "model" : "user",
+          parts: [{ text: m.content }],
+        })),
+      ];
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contents, generationConfig: { temperature: 0.85, maxOutputTokens: 200 } }),
         },
-        body: JSON.stringify({
-          model: "openrouter/auto",
-          messages: [{ role: "system", content: personaPrompt }, ...chatHistory.slice(-8)],
-          max_tokens: 200,
-          temperature: 0.85,
-        }),
-      });
+      );
       if (res.ok) {
         const data = await res.json();
-        const text = data.choices?.[0]?.message?.content?.trim();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
         if (text && text.length > 3) reply = text;
       }
     } catch {}

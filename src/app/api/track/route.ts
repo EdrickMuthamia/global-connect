@@ -11,7 +11,7 @@ export const POST = handle(async (req) => {
     const token = (await cookies()).get(SESSION_COOKIE)?.value;
     if (token) {
       const session = await verifySessionToken(token);
-      userId = session?.userId ?? null;
+      userId = session?.sub ?? null;
     }
   } catch { /* non-critical */ }
   await db.insert(pageViews).values({ path: String(path).slice(0, 200), userId });

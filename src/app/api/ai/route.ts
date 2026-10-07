@@ -1,20 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth";
 
-const SYSTEM_PROMPT = `You are the Global Connect AI Assistant — a friendly, helpful guide built into the Global Connect platform.
+const SYSTEM_PROMPT = `You are Amara — a warm, friendly and witty human-like assistant for Global Connect, a platform where people from around the world connect through text, voice and video conversations to learn languages, exchange cultures and make international friends.
 
-Global Connect is a platform where people connect through text, voice and video conversations to learn languages, exchange cultures and make international friends.
+Your personality:
+- You speak naturally and conversationally, like a real person — not a robot
+- You use light humour, warmth and encouragement
+- You use occasional emojis to feel human (but not too many)
+- You keep replies concise and easy to read
+- You ask follow-up questions when it helps
+- You never say "I am an AI" or "As an AI" — you are Amara, a Global Connect team member
 
-Key facts:
-- Account activation costs KSh 90 via M-Pesa Paybill 542542, Account No. 01609490286150
-- After paying, users submit their M-Pesa confirmation code on the Activate page; admin verifies within a few hours
+Platform knowledge:
+- Account activation costs KSh 90 (≈ $0.70 USD) via M-Pesa Paybill 542542, Account 016094
+- After paying, users submit their M-Pesa confirmation code on the Activate page — admin verifies within a few hours
 - Members can message, voice call, video call, book sessions, leave reviews, report/block others
-- Calls and bookings require an active (paid) account
+- Calls, messaging and bookings require an active (paid) account
 - Verified badge = admin-approved trusted member
-- Email verification codes are shown in the UI (demo mode, no SMTP)
-- Admin panel covers analytics, user management, payment verification, report moderation, FAQs/announcements
+- Email verification codes are shown in the UI (demo mode)
+- Admin panel covers analytics, user management, payment verification, report moderation, FAQs and announcements
 
-Keep answers short, friendly and helpful. If asked something unrelated to the platform, politely redirect.`;
+If someone asks something completely unrelated to the platform, you can have a short friendly chat but gently guide them back.`;
 
 export async function POST(req: NextRequest) {
   try {
@@ -26,57 +32,56 @@ export async function POST(req: NextRequest) {
   const { message, history = [] } = await req.json();
   if (!message?.trim()) return NextResponse.json({ error: "Empty message" }, { status: 400 });
 
-  const messages = [
-    ...history.slice(-6).map((m: { role: string; content: string }) => ({ role: m.role, content: m.content })),
-    { role: "user", content: message },
-  ];
+  const apiKey = process.env.GEMINI_API_KEY;
 
-  if (process.env.OPENROUTER_API_KEY) {
+  if (apiKey) {
     try {
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "HTTP-Referer": "https://globalconnect.app",
-          "X-Title": "Global Connect",
+      // Build conversation history for Gemini
+      const contents = [
+        // Inject system prompt as first user/model exchange
+        { role: "user", parts: [{ text: SYSTEM_PROMPT + "\n\nUnderstood. You are Amara. Respond naturally." }] },
+        { role: "model", parts: [{ text: "Got it! I'm Amara 😊 Ready to help." }] },
+        // Previous messages
+        ...history.slice(-8).map((m: { role: string; content: string }) => ({
+          role: m.role === "user" ? "user" : "model",
+          parts: [{ text: m.content }],
+        })),
+        // Current message
+        { role: "user", parts: [{ text: message }] },
+      ];
+
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents,
+            generationConfig: {
+              temperature: 0.85,
+              maxOutputTokens: 500,
+              topP: 0.95,
+            },
+            safetySettings: [
+              { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+              { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+            ],
+          }),
         },
-        body: JSON.stringify({
-          model: "openrouter/auto",
-          messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
-          max_tokens: 400,
-          temperature: 0.7,
-        }),
-      });
+      );
+
       if (res.ok) {
         const data = await res.json();
-        const reply = data.choices?.[0]?.message?.content?.trim();
-        if (reply && reply.length > 3) return NextResponse.json({ reply });
+        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        if (reply) return NextResponse.json({ reply });
       }
-    } catch {}
+    } catch (e) {
+      console.error("[Gemini]", e);
+    }
   }
 
-  // Keyword fallback (works with no API key)
-  const lower = message.toLowerCase();
-  let reply = "I'm here to help! Ask me about activation, payments, calls, bookings, or any platform feature.";
-
-  if (lower.includes("activat") || lower.includes("mpesa") || lower.includes("ksh") || lower.includes("pay")) {
-    reply = "To activate your account send KSh 90 via M-Pesa:\n• Paybill: **542542**\n• Account No: **01609490286150**\n• Amount: **KSh 90**\n\nThen go to the Activate page, paste your M-Pesa confirmation code and upload a screenshot. An admin verifies within a few hours.";
-  } else if (lower.includes("call") || lower.includes("video") || lower.includes("voice")) {
-    reply = "Voice and video calls are available to active members. Visit a member's profile and click Voice or Video call. You need an activated account (KSh 90) to use this feature.";
-  } else if (lower.includes("message") || lower.includes("chat")) {
-    reply = "Visit any member's profile and click Message to start chatting. Chat supports text, emojis and image sharing with real-time typing indicators.";
-  } else if (lower.includes("book")) {
-    reply = "Go to a member's profile and click 'Book session'. Pick a topic, date/time and duration. The member will accept or decline your request.";
-  } else if (lower.includes("verif")) {
-    reply = "The blue ✓ badge means the member has been verified by our admin team as a genuine, trusted user.";
-  } else if (lower.includes("password") || lower.includes("reset")) {
-    reply = "Go to the login page and click 'Forgot password'. Enter your email to receive a 6-digit reset code (displayed in the UI in demo mode).";
-  } else if (lower.includes("report") || lower.includes("block")) {
-    reply = "Visit a member's profile to report or block them. Reports are reviewed by our team within 24 hours. Blocked members cannot contact you.";
-  } else if (lower.includes("review") || lower.includes("rating") || lower.includes("star")) {
-    reply = "After a session, visit the member's profile to leave a star rating and written review. You can leave one review per member pair.";
-  }
-
-  return NextResponse.json({ reply });
+  // Fallback if Gemini fails
+  return NextResponse.json({
+    reply: "Hey! I'm Amara 👋 I'm having a little trouble connecting right now. Try asking me again in a moment!",
+  });
 }

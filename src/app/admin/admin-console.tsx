@@ -207,12 +207,31 @@ function UsersTab() {
     }
   };
 
-  const exportCsv = () => {
+  const exportCsv = async () => {
+    // Fetch all payments to join with members
+    const payData = await api<{ payments: PaymentRow[] }>("/api/admin/payments");
+    const payMap = new Map(payData.payments.map((p) => [p.user.id, p]));
     downloadCsv(
       `global-connect-members-${new Date().toISOString().slice(0, 10)}.csv`,
-      users.map((u) => ({ id: u.id, name: u.name, email: u.email, country: u.country, status: u.status, verified: u.isVerified, joined: u.createdAt })),
+      users.map((u) => {
+        const p = payMap.get(u.id);
+        return {
+          id: u.id,
+          name: u.name,
+          email: u.email ?? "",
+          country: u.country ?? "",
+          account_status: u.status ?? "",
+          verified: u.isVerified ? "Yes" : "No",
+          payment_status: p?.status ?? "none",
+          payment_reference: p?.reference ?? "",
+          amount_kes: p ? (p.amount / 100).toFixed(2) : "",
+          payment_method: p?.method ?? "",
+          payment_date: p?.createdAt ? new Date(p.createdAt).toISOString().slice(0, 10) : "",
+          joined: new Date(u.createdAt).toISOString().slice(0, 10),
+        };
+      }),
     );
-    push("success", "Export started", "Downloading CSV report.");
+    push("success", "Export ready", "Member payment report downloaded.");
   };
 
   return (
@@ -229,7 +248,7 @@ function UsersTab() {
           <option value="suspended">Suspended</option>
           <option value="banned">Banned</option>
         </Select>
-        <Button variant="outline" size="sm" onClick={exportCsv} className="h-10">
+        <Button variant="outline" size="sm" onClick={() => exportCsv().catch(() => push("error", "Export failed"))} className="h-10">
           <Download className="h-4 w-4" /> Export CSV
         </Button>
         {isFetching && <span className="text-xs font-semibold text-slate-400">Refreshing…</span>}
@@ -358,7 +377,24 @@ function PaymentsTab() {
           variant="outline"
           size="sm"
           onClick={() => {
-            downloadCsv(`global-connect-payments-${status}.csv`, payments.map((p) => ({ id: p.id, member: p.user.name, email: p.user.email, reference: p.reference, amount: p.amount, currency: p.currency, method: p.method, status: p.status, created: p.createdAt })));
+            downloadCsv(
+              `global-connect-payments-${status}-${new Date().toISOString().slice(0, 10)}.csv`,
+              payments.map((p) => ({
+                payment_id: p.id,
+                member_name: p.user.name,
+                email: p.user.email ?? "",
+                country: p.user.country ?? "",
+                account_status: p.user.status ?? "",
+                verified: p.user.isVerified ? "Yes" : "No",
+                mpesa_reference: p.reference,
+                amount_kes: (p.amount / 100).toFixed(2),
+                currency: p.currency,
+                payment_method: p.method,
+                payment_status: p.status,
+                note: p.note ?? "",
+                submitted_date: new Date(p.createdAt).toISOString().slice(0, 10),
+              })),
+            );
           }}
         >
           <Download className="h-4 w-4" /> Export CSV
