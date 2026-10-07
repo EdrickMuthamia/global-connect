@@ -26,7 +26,8 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { api, ApiClientError, downloadCsv } from "@/lib/client";
+import { api, ApiClientError } from "@/lib/client";
+import { exportXlsx, exportPdf, type ReportRow as ExportRow } from "@/lib/export";
 import { Avatar, Badge, Button, Card, EmptyState, Field, Input, Modal, PageLoader, Select, Skeleton, Stars, Textarea, cn } from "@/components/ui";
 import { useToast } from "@/components/providers";
 import { formatKes, timeAgo } from "@/lib/constants";
@@ -207,31 +208,40 @@ function UsersTab() {
     }
   };
 
-  const exportCsv = async () => {
-    // Fetch all payments to join with members
+  const [exportOpen, setExportOpen] = useState(false);
+
+  const buildRows = async (): Promise<ExportRow[]> => {
     const payData = await api<{ payments: PaymentRow[] }>("/api/admin/payments");
     const payMap = new Map(payData.payments.map((p) => [p.user.id, p]));
-    downloadCsv(
-      `global-connect-members-${new Date().toISOString().slice(0, 10)}.csv`,
-      users.map((u) => {
-        const p = payMap.get(u.id);
-        return {
-          id: u.id,
-          name: u.name,
-          email: u.email ?? "",
-          country: u.country ?? "",
-          account_status: u.status ?? "",
-          verified: u.isVerified ? "Yes" : "No",
-          payment_status: p?.status ?? "none",
-          payment_reference: p?.reference ?? "",
-          amount_kes: p ? (p.amount / 100).toFixed(2) : "",
-          payment_method: p?.method ?? "",
-          payment_date: p?.createdAt ? new Date(p.createdAt).toISOString().slice(0, 10) : "",
-          joined: new Date(u.createdAt).toISOString().slice(0, 10),
-        };
-      }),
-    );
-    push("success", "Export ready", "Member payment report downloaded.");
+    return users.map((u) => {
+      const p = payMap.get(u.id);
+      return {
+        id: u.id,
+        name: u.name,
+        email: u.email ?? "",
+        country: u.country ?? "",
+        account_status: u.status ?? "",
+        verified: u.isVerified ? "Yes" : "No",
+        payment_status: p?.status ?? "none",
+        payment_reference: p?.reference ?? "",
+        amount_kes: p ? (p.amount / 100).toFixed(2) : "",
+        payment_method: p?.method ?? "",
+        payment_date: p?.createdAt ? new Date(p.createdAt).toISOString().slice(0, 10) : "",
+        joined: new Date(u.createdAt).toISOString().slice(0, 10),
+      };
+    });
+  };
+
+  const doExport = async (fmt: "xlsx" | "pdf") => {
+    setExportOpen(false);
+    try {
+      const rows = await buildRows();
+      const date = new Date().toISOString().slice(0, 10);
+      const title = "Members & Payment Report";
+      if (fmt === "xlsx") await exportXlsx(`global-connect-members-${date}.xlsx`, title, rows);
+      else await exportPdf(`global-connect-members-${date}.pdf`, title, rows);
+      push("success", "Export ready", `${fmt.toUpperCase()} downloaded.`);
+    } catch { push("error", "Export failed"); }
   };
 
   return (
@@ -248,9 +258,21 @@ function UsersTab() {
           <option value="suspended">Suspended</option>
           <option value="banned">Banned</option>
         </Select>
-        <Button variant="outline" size="sm" onClick={() => exportCsv().catch(() => push("error", "Export failed"))} className="h-10">
-          <Download className="h-4 w-4" /> Export CSV
-        </Button>
+        <div className="relative">
+          <Button variant="outline" size="sm" onClick={() => setExportOpen((o) => !o)} className="h-10">
+            <Download className="h-4 w-4" /> Export <span className="ml-1 text-slate-400">▾</span>
+          </Button>
+          {exportOpen && (
+            <div className="absolute right-0 top-full z-20 mt-1 w-36 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg dark:border-white/10 dark:bg-slate-900">
+              <button onClick={() => doExport("xlsx")} className="flex w-full items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-white/[0.06]">
+                📊 Excel (.xlsx)
+              </button>
+              <button onClick={() => doExport("pdf")} className="flex w-full items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-white/[0.06]">
+                📄 PDF
+              </button>
+            </div>
+          )}
+        </div>
         {isFetching && <span className="text-xs font-semibold text-slate-400">Refreshing…</span>}
       </div>
 
@@ -354,6 +376,35 @@ function PaymentsTab() {
     }
   };
 
+  const [exportOpen, setExportOpen] = useState(false);
+
+  const paymentsRows = (): ExportRow[] => payments.map((p) => ({
+    payment_id: p.id,
+    member_name: p.user.name,
+    email: p.user.email ?? "",
+    country: p.user.country ?? "",
+    account_status: p.user.status ?? "",
+    verified: p.user.isVerified ? "Yes" : "No",
+    payment_reference: p.reference,
+    amount_kes: (p.amount / 100).toFixed(2),
+    currency: p.currency,
+    payment_method: p.method,
+    payment_status: p.status,
+    note: p.note ?? "",
+    submitted_date: new Date(p.createdAt).toISOString().slice(0, 10),
+  }));
+
+  const doExport = async (fmt: "xlsx" | "pdf") => {
+    setExportOpen(false);
+    const rows = paymentsRows();
+    const date = new Date().toISOString().slice(0, 10);
+    const title = `Payments Report — ${status.charAt(0).toUpperCase() + status.slice(1)}`;
+    try {
+      if (fmt === "xlsx") await exportXlsx(`global-connect-payments-${status}-${date}.xlsx`, title, rows);
+      else await exportPdf(`global-connect-payments-${status}-${date}.pdf`, title, rows);
+    } catch { push("error", "Export failed"); }
+  };
+
   const openProof = async (p: PaymentRow) => {
     try {
       const res = await api<{ payment: { proofUrl?: string | null } }>(`/api/admin/payments?id=${p.id}`);
@@ -373,32 +424,21 @@ function PaymentsTab() {
           </button>
         ))}
         <span className="ml-auto text-xs font-semibold text-slate-400">{payments.length} records</span>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            downloadCsv(
-              `global-connect-payments-${status}-${new Date().toISOString().slice(0, 10)}.csv`,
-              payments.map((p) => ({
-                payment_id: p.id,
-                member_name: p.user.name,
-                email: p.user.email ?? "",
-                country: p.user.country ?? "",
-                account_status: p.user.status ?? "",
-                verified: p.user.isVerified ? "Yes" : "No",
-                mpesa_reference: p.reference,
-                amount_kes: (p.amount / 100).toFixed(2),
-                currency: p.currency,
-                payment_method: p.method,
-                payment_status: p.status,
-                note: p.note ?? "",
-                submitted_date: new Date(p.createdAt).toISOString().slice(0, 10),
-              })),
-            );
-          }}
-        >
-          <Download className="h-4 w-4" /> Export CSV
-        </Button>
+        <div className="relative">
+          <Button variant="outline" size="sm" onClick={() => setExportOpen((o) => !o)}>
+            <Download className="h-4 w-4" /> Export <span className="ml-1 text-slate-400">▾</span>
+          </Button>
+          {exportOpen && (
+            <div className="absolute right-0 top-full z-20 mt-1 w-36 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg dark:border-white/10 dark:bg-slate-900">
+              <button onClick={() => doExport("xlsx")} className="flex w-full items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-white/[0.06]">
+                📊 Excel (.xlsx)
+              </button>
+              <button onClick={() => doExport("pdf")} className="flex w-full items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-white/[0.06]">
+                📄 PDF
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="mt-4 space-y-3">
