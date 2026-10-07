@@ -4,6 +4,7 @@ import { payments } from "@/db/schema";
 import { ApiError, handle, ok, readJson, vImage, vStr } from "@/lib/api";
 import { requireUser } from "@/lib/auth";
 import { notifyAdmins } from "@/lib/db-helpers";
+import { sendAdminPaymentAlert } from "@/lib/mailer";
 
 export const GET = handle(async () => {
   const me = await requireUser();
@@ -53,6 +54,16 @@ export const POST = handle(async (req) => {
     body: `${me.name} submitted M-Pesa reference ${reference}.`,
     link: "/admin?tab=payments",
   });
+
+  // Fire email alert to admin (non-blocking)
+  sendAdminPaymentAlert({
+    memberName: me.name,
+    memberEmail: me.email,
+    reference,
+    amountKes: (90 / 100).toFixed(2),
+    method: "mpesa_paybill",
+    note,
+  }).catch(() => {});
 
   return ok({ payment: saved });
 });
