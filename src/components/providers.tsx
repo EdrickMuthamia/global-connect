@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type ReactNode, createContext, useCallback, useContext } from "react";
+import { useState, useEffect, type ReactNode, createContext, useCallback, useContext } from "react";
+import { usePathname } from "next/navigation";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 /* ------------------------------- Toasts ----------------------------------- */
@@ -61,6 +62,11 @@ export function Providers({ children }: { children: ReactNode }) {
     setToasts((prev) => [...prev.slice(-3), { id, tone, title, body }]);
     setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 4200);
   }, []);
+
+  const pathname = usePathname();
+  useEffect(() => {
+    fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: pathname }) }).catch(() => {});
+  }, [pathname]);
 
   return (
     <QueryClientProvider client={queryClient}>

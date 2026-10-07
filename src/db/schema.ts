@@ -298,6 +298,19 @@ export const announcements = pgTable("announcements", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/* -------------------------------- Page views ------------------------------- */
+
+export const pageViews = pgTable(
+  "page_views",
+  {
+    id: serial("id").primaryKey(),
+    path: text("path").notNull(),
+    userId: integer("user_id"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("page_views_created_idx").on(t.createdAt)],
+);
+
 /* --------------------------------- Types ----------------------------------- */
 
 export type User = typeof users.$inferSelect;

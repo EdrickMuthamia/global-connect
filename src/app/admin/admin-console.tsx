@@ -114,6 +114,9 @@ function OverviewTab() {
     { label: "Calls placed", value: s.total_calls, tone: "bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-300", icon: BarChart3 },
     { label: "Reviews written", value: s.total_reviews, tone: "bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-300", icon: Star },
     { label: "Avg. rating", value: Number(s.avg_rating || 0).toFixed(1), tone: "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-300", icon: Star },
+    { label: "Page views (today)", value: s.page_views_today, tone: "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300", icon: BarChart3 },
+    { label: "Page views (7 days)", value: s.page_views_week, tone: "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300", icon: BarChart3 },
+    { label: "Total page views", value: s.total_page_views, tone: "bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-300", icon: BarChart3 },
   ];
 
   return (

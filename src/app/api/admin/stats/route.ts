@@ -26,7 +26,10 @@ export const GET = handle(async () => {
       (SELECT COUNT(*)::int FROM messages) AS total_messages,
       (SELECT COUNT(*)::int FROM calls) AS total_calls,
       (SELECT COUNT(*)::int FROM reviews) AS total_reviews,
-      (SELECT COALESCE(AVG(rating), 0)::float FROM reviews) AS avg_rating
+      (SELECT COALESCE(AVG(rating), 0)::float FROM reviews) AS avg_rating,
+      (SELECT COUNT(*)::int FROM page_views) AS total_page_views,
+      (SELECT COUNT(*)::int FROM page_views WHERE created_at >= NOW() - INTERVAL '24 hours') AS page_views_today,
+      (SELECT COUNT(*)::int FROM page_views WHERE created_at >= NOW() - INTERVAL '7 days') AS page_views_week
   `)) as unknown as { rows: Record<string, number>[] };
 
   const growth = (await db.execute(sql`
