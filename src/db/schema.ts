@@ -75,7 +75,7 @@ export const payments = pgTable(
     userId: integer("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    amount: integer("amount").notNull().default(90), // minor units of currency
+    amount: integer("amount").notNull().default(90), // stored in KES directly
     currency: text("currency").notNull().default("KES"),
     method: text("method").notNull().default("mpesa_paybill"), // mpesa_paybill | mpesa_auto | card
     reference: text("reference").notNull(), // M-Pesa confirmation code etc.

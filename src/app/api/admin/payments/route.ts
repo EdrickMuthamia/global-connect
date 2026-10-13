@@ -22,6 +22,7 @@ export const GET = handle(async (req) => {
   }
 
   const status = url.searchParams.get("status") || "";
+  const validStatuses = ["pending", "approved", "rejected"];
   const rows = await db
     .select({
       payment: {
@@ -40,7 +41,7 @@ export const GET = handle(async (req) => {
     })
     .from(payments)
     .innerJoin(users, eq(users.id, payments.userId))
-    .where(["pending", "approved", "rejected"].includes(status) ? eq(payments.status, status) : undefined)
+    .where(validStatuses.includes(status) ? eq(payments.status, status) : eq(payments.status, payments.status))
     .orderBy(desc(payments.createdAt))
     .limit(100);
 
